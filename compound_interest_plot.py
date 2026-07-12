@@ -9,7 +9,7 @@ remains in the account and compounds thereafter.
 from __future__ import annotations
 
 from calendar import monthrange
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -21,7 +21,12 @@ STARTING_BALANCE = 21_500.00
 ANNUAL_RATE = 0.045
 DAILY_RATE = ANNUAL_RATE / 365
 START_DATE = date.today()
-OUTPUT_PDF = Path(__file__).with_name("account_balance_projection.pdf")
+OUTPUT_DIR = Path(__file__).resolve().parent
+
+
+def output_pdf_path() -> Path:
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    return OUTPUT_DIR / f"{timestamp}_account_balance_projection.pdf"
 
 
 def end_of_month(d: date) -> date:
@@ -85,7 +90,7 @@ def format_pounds(value: float, _pos: int | None = None) -> str:
 
 
 def create_plot(dates: list[date], balances: list[float], output_path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(11, 6.5))
+    fig, ax = plt.subplots(figsize=(22, 13))
 
     ax.plot(dates, balances, color="#1B4F72", linewidth=2.25, marker="o", markersize=6)
     ax.fill_between(dates, balances, balances[0], alpha=0.12, color="#1B4F72")
@@ -150,14 +155,15 @@ def main() -> None:
     if not dates:
         raise RuntimeError("No month-end balances were produced for the plot window.")
 
-    create_plot(dates, balances, OUTPUT_PDF)
+    output_pdf = output_pdf_path()
+    create_plot(dates, balances, output_pdf)
 
     print(f"Start date:          {START_DATE:%Y-%m-%d}")
     print(f"Plot window:         {dates[0]:%Y-%m-%d} to {dates[-1]:%Y-%m-%d}")
     print(f"Starting balance:    £{STARTING_BALANCE:,.2f}")
     print(f"Final balance:       £{balances[-1]:,.2f}")
     print(f"Interest earned:     £{balances[-1] - STARTING_BALANCE:,.2f}")
-    print(f"PDF written to:      {OUTPUT_PDF.resolve()}")
+    print(f"PDF written to:      {output_pdf}")
 
 
 if __name__ == "__main__":
